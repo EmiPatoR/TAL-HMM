@@ -1,4 +1,4 @@
 TAL-HMM
 =======
 
-Projet [M2INF] de l'UE Statistiques inferentielles
+Projet [M2IF] de l'UE Statistiques inferentielles
