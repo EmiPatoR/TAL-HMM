@@ -3,12 +3,12 @@ TARGET   = hmm
 
 CC       = gcc
 # compiling flags here
-CFLAGS   = -std=c99 -Wall -pedantic -I.
+CFLAGS   = -std=c99 -Wall -pedantic -I includes/
 
 LINKER   = gcc -o
 # linking flags here
-LFLAGS   = -Wall -I.
-LIB =
+LFLAGS   = -Wall -I includes/
+LIB = -lm
 
 # change these to set the proper directories where each files shoould be
 SRCDIR  = src
@@ -21,6 +21,7 @@ INCLUDES := $(wildcard $(HEADIR)/*.h)
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 rm       = rm -f
 
+all: $(SOURCES) $(BINDIR)/$(TARGET)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	@$(LINKER) $@ $(LFLAGS) $(OBJECTS) $(LIB)

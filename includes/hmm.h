@@ -26,12 +26,12 @@ typedef struct
 } hmm;
 
 
-hmm *allocate_hmm(int nbe, int nbo);
+hmm* allocate_hmm(int nbe, int nbo);
 void intialize_hmm(hmm *h);
 void print_hmm(hmm *h, char *file_name);
 void print_hmm_verbose(hmm *h, char *file_name);
-hmm *load_hmm(char *file_name);
-int *charge_observables(char *file_name, int T);
+hmm* load_hmm(char *file_name);
+int* charge_observables(char *file_name, int T);
 void free_hmm(hmm *h);
 
 #endif

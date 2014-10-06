@@ -1,8 +1,8 @@
-#include"hmm.h"
+#include "hmm.h"
 
 void free_hmm(hmm *h)
 {
-  int i,j;
+  int i;
   if(h == NULL) return;
   for(i = 0; i < h->nbe; i++){ 
     free(h->T[i]);
@@ -18,7 +18,7 @@ void free_hmm(hmm *h)
 hmm *allocate_hmm(int nbe, int nbo)
 {
   hmm *h;
-  int i,j;
+  int i;
 
   h = malloc(sizeof(hmm));
   if(h == NULL){
