@@ -21,10 +21,12 @@ hmm *allocate_hmm(int nbe, int nbo)
   int i;
 
   h = malloc(sizeof(hmm));
+
   if(h == NULL){
     fprintf(stderr, "erreur d'allocation\n");
     exit(1);
   }
+
   h->nbe = nbe;
   h->nbo = nbo;
 
