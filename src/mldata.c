@@ -75,4 +75,5 @@ void free_data(MlData* data){
 	free(data->train_samples_id);
 	free(data->test_samples_id);
 	free(data);
+	printf("Echantillons liberes en memoire.\n");
 }
