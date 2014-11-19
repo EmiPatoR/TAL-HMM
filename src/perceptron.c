@@ -5,7 +5,7 @@
 #include "hmm.h"
 #include "viterbi.h"
 
-void free_Mat(int** M,int nbe){
+void free_Mat(double** M,int nbe){
 	int i;
 	for(i=0;i<nbe;i++){
 		free(M[i]);
@@ -13,20 +13,20 @@ void free_Mat(int** M,int nbe){
 	free(M);
 }
 
-void free_PI(int* PI){
+void free_PI(double* PI){
 	free(PI);
 }
 
-int** PhyT(int k, categorie* C, int nbe){
+double** PhyT(int k, categorie* C, int nbe){
 	int i,j;
-	int** T = NULL;
-	T = (int**)malloc(sizeof(int*) * nbe);
+	double** T = NULL;
+	T = (double**)malloc(sizeof(double*) * nbe);
 	if(T == NULL){
 		fprintf(stderr,"Erreur d'allocation memoire.\n");
 		exit(1);
 	}
 	for(i=0;i<nbe;i++){
-		T[i] = (int*) malloc(sizeof(int) * nbe);
+		T[i] = (double*) malloc(sizeof(double) * nbe);
 		if(T[i] == NULL){
 			fprintf(stderr,"Erreur d'allocation memoire.\n");
 			exit(1);
@@ -46,16 +46,16 @@ int** PhyT(int k, categorie* C, int nbe){
 	return T;
 }
 
-int** PhyE(int k, categorie* C, phrase M, int nbe, int nbo){
+double** PhyE(int k, categorie* C, phrase M, int nbe, int nbo){
 	int i,j;
-	int** E = NULL;
-	E = (int**)malloc(sizeof(int*) * nbe);
+	double** E = NULL;
+	E = (double**)malloc(sizeof(double*) * nbe);
 	if(E == NULL){
 		fprintf(stderr,"Erreur d'allocation memoire.\n");
 		exit(1);
 	}
 	for(i=0;i<nbe;i++){
-		E[i] = (int*) malloc(sizeof(int) * nbo);
+		E[i] = (double*) malloc(sizeof(double) * nbo);
 		if(E[i] == NULL){
 			fprintf(stderr,"Erreur d'allocation memoire.\n");
 			exit(1);
@@ -77,10 +77,10 @@ int** PhyE(int k, categorie* C, phrase M, int nbe, int nbo){
 	return E;
 }
 
-int* PhyPi(categorie* C, int nbe){
+double* PhyPi(categorie* C, int nbe){
 	int i;
-	int* PI = NULL;
-	PI = (int*)malloc(sizeof(int) * nbe);
+	double* PI = NULL;
+	PI = (double*)malloc(sizeof(double) * nbe);
 	if(PI == NULL){
 		fprintf(stderr,"Erreur d'allocation memoire.\n");
 		exit(1);
@@ -99,7 +99,7 @@ int* PhyPi(categorie* C, int nbe){
 }
 
 
-void addition_mat(int** M1, int** M2,int nbe, int c){
+void addition_mat(double** M1, double** M2,int nbe, int c){
 	int i,j;
 	for(i=0;i<nbe;i++){
 		for(j=0;j<c;j++){
@@ -109,7 +109,7 @@ void addition_mat(int** M1, int** M2,int nbe, int c){
 	free_Mat(M2,nbe);
 }
 
-void inverse_mat(int** M,int nbe,int c){
+void inverse_mat(double** M,int nbe,int c){
 	int i,j;
 	for(i=0;i<nbe;i++){
 		for(j=0;j<c;j++){
@@ -117,14 +117,14 @@ void inverse_mat(int** M,int nbe,int c){
 		}
 	}
 }
-void inverse_vect( int* V, int nbe ){
+void inverse_vect( double* V, int nbe ){
 	int i;
 	for (i=0;i<nbe;i++){
 	V[i]=-V[i];
 	}
 }
 
-void addition_vect( int* V1 , int* V2 , int nbe){
+void addition_vect( double* V1 , double* V2 , int nbe){
 	int i;
 	for (i=0;i<nbe;i++){
 	V1[i] = V1[i] + V2[i];
@@ -138,19 +138,30 @@ void Perceptron(int I , corpus Corp,hmm *h){
 	categorie* C = NULL;
 
 	int i,k;
+	double **M = NULL;
+	double *V = NULL;
 
 	while(compteur <I){
 		for(i=0;i<Corp.nb_phrases;i++){
 			Cc = Viterbi(h,Corp.phrases[i]);
 			C = Corp.phrases[i].categories;
 			for (k=0;k<Corp.phrases[i].nb_mots;i++){
-                addition_mat(h->T,inverse(PhyT(k,Cc,h->nbe),h->nbe,h->nbe),h->nbe,h->nbe);
+				M = PhyT(k,Cc,h->nbe);
+				inverse_mat(M,h->nbe,h->nbe);
+                addition_mat(h->T,M,h->nbe,h->nbe);
+
                 addition_mat(h->T,PhyT(k,C,h->nbe),h->nbe,h->nbe);
-                addition_mat(h->E,inverse(PhyE(k,Cc,Corp.phrases[i],h->nbe,h->nbo),h->nbe,h->nbe),h->nbe,h->nbo);
+
+                M = PhyE(k,Cc,Corp.phrases[i],h->nbe,h->nbo);
+                inverse_mat(M,h->nbe,h->nbe);
+                addition_mat(h->E,M,h->nbe,h->nbo);
+
                 addition_mat(h->E,PhyE(k,C,Corp.phrases[i],h->nbe,h->nbo),h->nbe,h->nbo);
             }
-            addition_vect(h->Pi,PhyPi(C,h->nbe));
-            addition_vect(h->Pi,inverse_vect(PhyPi(Cc,h->nbe),h->nbe);
+            addition_vect(h->PI,PhyPi(C,h->nbe),h->nbe);
+            V=PhyPi(Cc,h->nbe);
+            inverse_vect(V,h->nbe);
+            addition_vect(h->PI,V,h->nbe);
 		}
 		compteur++;
 	}
