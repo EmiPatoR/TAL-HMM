@@ -99,27 +99,14 @@ int* PhyPi(categorie* C, int nbe){
 }
 
 
-int** addition_mat(int** M1, int** M2,int nbe, int c){
+void addition_mat(int** M1, int** M2,int nbe, int c){
 	int i,j;
-	int** res = NULL;
-	res = (int**) malloc(sizeof(int*) * nbe);
-	if(res == NULL){
-		fprintf(stderr,"Erreur d'allocation.\n");
-		exit(1);
-	}
 	for(i=0;i<nbe;i++){
-		res[i] = (int*)malloc(sizeof(int)*c);
-		if(res[i] == NULL){
-			fprintf(stderr,"Erreur d'allocation.\n");
-			exit(1);
-		}
 		for(j=0;j<c;j++){
-			res[i][j] = M1[i][j] + M2[i][j];
+			M1[i][j] = M1[i][j] + M2[i][j];
 		}
 	}
-	free_Mat(M1,nbe);
 	free_Mat(M2,nbe);
-	return res;
 }
 
 void inverse_mat(int** M,int nbe,int c){
@@ -130,9 +117,22 @@ void inverse_mat(int** M,int nbe,int c){
 		}
 	}
 }
+void inverse_vect( int* V, int nbe ){
+	int i;
+	for (i=0;i<nbe;i++){
+	V[i]=-V[i];
+	}
+}
+
+void addition_vect( int* V1 , int* V2 , int nbe){
+	int i;
+	for (i=0;i<nbe;i++){
+	V1[i] = V1[i] + V2[i];
+	}
+free_PI(V2);
+}
 
 void Perceptron(int I , corpus Corp,hmm *h){
-	/*
 	int compteur = 0;
 	categorie* Cc = NULL;
 	categorie* C = NULL;
@@ -142,8 +142,16 @@ void Perceptron(int I , corpus Corp,hmm *h){
 	while(compteur <I){
 		for(i=0;i<Corp.nb_phrases;i++){
 			Cc = Viterbi(h,Corp.phrases[i]);
+			C = Corp.phrases[i].categories;
+			for (k=0;k<Corp.phrases[i].nb_mots;i++){
+                addition_mat(h->T,inverse(PhyT(k,Cc,h->nbe),h->nbe,h->nbe),h->nbe,h->nbe);
+                addition_mat(h->T,PhyT(k,C,h->nbe),h->nbe,h->nbe);
+                addition_mat(h->E,inverse(PhyE(k,Cc,Corp.phrases[i],h->nbe,h->nbo),h->nbe,h->nbe),h->nbe,h->nbo);
+                addition_mat(h->E,PhyE(k,C,Corp.phrases[i],h->nbe,h->nbo),h->nbe,h->nbo);
+            }
+            addition_vect(h->Pi,PhyPi(C,h->nbe));
+            addition_vect(h->Pi,inverse_vect(PhyPi(Cc,h->nbe),h->nbe);
 		}
 		compteur++;
 	}
-	*/
 }
