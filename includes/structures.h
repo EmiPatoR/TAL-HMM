@@ -1,6 +1,8 @@
 #ifndef __STRUCTURES__
 #define __STRUCTURES__
 
+#include "mldata.h"
+
 //typedef int categorie;
 
 typedef struct{
@@ -12,6 +14,7 @@ typedef struct{
 typedef struct{
 	int longueur;
 	char* caractere;
+	int inconnu;
 	int id;
 }mot;
 
@@ -36,6 +39,8 @@ void free_phrases(corpus* Corp);
 
 mot* init_mots(char* fichier_vocab,int* nombreMots);
 void free_mots(mot* Mots,int nombreMots);
+
+void detect_mots_inconnus(corpus *Corp,MlData *data);
 
 categorie* init_categories(char* fichier_vocab,int* nombreCategories);
 void free_categories(categorie* Categories,int nombreCategories);

@@ -58,7 +58,10 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 		res[i] =  NULL;
 	//ERREUR ICI
 	for(i=0;i<h->nbe;i++){ // Pour chaque etat
-		T1[i][0] = h->PI[i] + h->E[i][p.mots[0]->id];
+		if(p.mots[0]->inconnu == 0)
+			T1[i][0] = h->PI[i] + h->E[i][p.mots[0]->id];
+		else
+			T1[i][0] = h->PI[i];
 		T2[i][0] = 0.0;
 		//fprintf(stderr, "T[%i][0] = %lf ",i,T1[i][0]);
 	}
@@ -73,10 +76,14 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 
 	// Calculs de T1 et T2
 	for(i=1;i<p.nb_mots;i++){
+
 		for(j=0;j<h->nbe;j++){
 			for(k=0;k<h->nbe;k++){
-				valeur_actuelle = T1[k][i-1] + h->T[k][j] + h->E[j][p.mots[i]->id];
-				if(valeur_actuelle > val_max){
+				if(p.mots[i]->inconnu == 0)
+					valeur_actuelle = T1[k][i-1] + h->T[k][j] + h->E[j][p.mots[i]->id];
+				else
+					valeur_actuelle = T1[k][i-1] + h->T[k][j];
+				if(valeur_actuelle >= val_max){
 					val_max = valeur_actuelle;
 					i_max = k;
 				}
@@ -90,7 +97,7 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 	// Recuperation de la solution
 	val_max = MINUS_INF;
 	for(i=0;i<h->nbe;i++){
-		if(T1[i][p.nb_mots -1] > val_max){
+		if(T1[i][p.nb_mots -1] >= val_max){
 			val_max = T1[i][p.nb_mots -1];
 			tmp = i;
 		}

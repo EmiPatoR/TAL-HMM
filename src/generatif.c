@@ -24,8 +24,10 @@ void calc_PI(hmm *h,corpus* Corp,MlData *data){
 				num[i]++;
 			}
 		}
-
-		h->PI[i] = log((double)(((double)num[i])/((double)data->train_samples_count)));
+		if(num[i] == 0)
+			h->PI[i] = MINUS_INF;
+		else
+			h->PI[i] = log((double)(((double)num[i])/((double)data->train_samples_count)));
 	}
 	free(num);
 }
@@ -80,7 +82,10 @@ void calc_E(hmm *h,corpus* Corp,MlData *data){
 	for(i=0;i<h->nbe;i++){
 		//occ[i] = 0;
 		for(j=0;j<h->nbo;j++){
-			h->E[i][j] = log((double)((double)num[i][j] / (double)occ[i]));
+			if(num[i][j] == 0)
+				h->E[i][j] = MINUS_INF;
+			else
+				h->E[i][j] = log((double)((double)num[i][j] / (double)occ[i]));
 		}
 	}
 
@@ -153,7 +158,10 @@ void calc_T(hmm *h,corpus* Corp,MlData *data){
 
 	for(i=0;i<h->nbe;i++){
 		for(j=0;j<h->nbe;j++){
-			h->T[i][j] = log((double)((double)num[i][j] / (double)occ[i]));
+			if(num[i][j] == 0)
+				h->T[i][j] = MINUS_INF;
+			else
+				h->T[i][j] = log((double)((double)num[i][j] / (double)occ[i]));
 		}
 	}
 

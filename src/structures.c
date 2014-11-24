@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "structures.h"
+#include "mldata.h"
 
 #define LIGNE_BUFFER 100
 
@@ -64,6 +65,7 @@ mot* init_mots(char* fichier_vocab, int* nombreMots){
 				else
 					res[i].caractere[j] = buffer[j];
 			}
+			res[i].inconnu = 1;
 			res[i].id = i;
 			res[i].longueur = strlen(buffer) - 1;
 		}
@@ -323,4 +325,13 @@ void free_categories(categorie* Categories,int nombreCategories){
 	}
 	free(Categories);
 	printf("Categories liberes en memoire.\n");
+}
+
+void detect_mots_inconnus(corpus *Corp,MlData *data){
+	int i,j;
+	for(i=0;i<data->train_samples_count;i++){
+		for(j=0;j<Corp->phrases[data->train_samples_id[i]].nb_mots;j++){
+			Corp->phrases[data->train_samples_id[i]].mots[j]->inconnu = 0;
+		}
+	}
 }

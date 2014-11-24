@@ -39,26 +39,30 @@ int main()
 
 	h = allocate_hmm(nbCategories,nbMots);
 
+	printf("-------------- Detection mots inconnus --------------------- \n");
+	detect_mots_inconnus(Corp,data);
 
+	//Modele generatif
+	init_hmm_inf(h);
+	calc_PI(h,Corp,data);
+	calc_E(h,Corp,data);
+	calc_T(h,Corp,data);
 
-		//Modele generatif
-	//init_hmm_inf(h);
-	//calc_PI(h,Corp,data);
-	//calc_E(h,Corp,data);
-	//calc_T(h,Corp,data);
+	//Modele discriminant
+	//intialize_hmm(h);
+	//Perceptron(7,Corp,h,data,Categories);
 
-		//Modele discriminant
-	intialize_hmm(h);
-	Perceptron(7,Corp,h,data,Categories);
+	//h = load_hmm("percep_tr90_i5");
+	print_hmm(h,"testC");
 
-	//h = load_hmm("percep_tr90");
-	print_hmm(h,"percep_tr90_i7");
-
-	Cc = Viterbi(h,Corp->phrases[data->test_samples_id[0]],Categories);
+	//Cc = Viterbi(h,Corp->phrases[data->test_samples_id[0]],Categories);
+	Cc = Viterbi(h,Corp->phrases[data->test_samples_id[32]],Categories);
 	test = malloc(sizeof(phrase));
 	test->categories = Cc;
-	test->nb_mots = Corp->phrases[data->test_samples_id[0]].nb_mots;
-	test->id = Corp->phrases[data->test_samples_id[0]].id;
+	test->nb_mots = Corp->phrases[data->test_samples_id[32]].nb_mots;
+	test->id = Corp->phrases[data->test_samples_id[32]].id;
+	test->mots = Corp->phrases[data->test_samples_id[32]].mots;
+
 
 	printf("-------------- Donnees --------------------- \n");
 	printf("Il y a %i mots dans le fichier vocabulaire. \n",nbMots);
@@ -72,10 +76,14 @@ int main()
 	printf("La taille de l'ensemble de test est : %i \n",data->test_samples_count);
 	printf("-------------- Phrases test --------------------- \n");
 
-	afficher_phrase(Corp->phrases[data->test_samples_id[0]]);
-	afficher_categories_phrase(Corp->phrases[data->test_samples_id[0]]);
+	afficher_phrase(Corp->phrases[data->test_samples_id[32]]);
+	afficher_categories_phrase(Corp->phrases[data->test_samples_id[32]]);
 	afficher_categories_phrase(*test);
-
+	int i;
+	for(i=0;i<test->nb_mots;i++){
+		printf(" %i " ,test->mots[i]->inconnu);
+	}
+	printf("\n");
 	printf("-------------- Liberation memoire --------------------- \n");
 
 	free(test->categories);
