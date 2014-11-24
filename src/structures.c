@@ -17,8 +17,6 @@ mot* init_mots(char* fichier_vocab, int* nombreMots){
 
 	int nbMots = 0;
 
-	int vu = 0;
-
 	mot *res = NULL;
 
 	int i,j;
@@ -51,7 +49,7 @@ mot* init_mots(char* fichier_vocab, int* nombreMots){
 		for(i=0;i<nbMots;i++){
 			fgets(buffer,LIGNE_BUFFER,fichier);
 			//Allocation du mot
-			res[i].caractere = (char*)malloc(sizeof(char) * (strlen(buffer) - 1) );
+			res[i].caractere = (char*)malloc(sizeof(char) * (strlen(buffer)) );
 			if(res[i].caractere == NULL){
 				fprintf(stderr,"Erreur d'allocation");
 				fclose(fichier);
@@ -62,21 +60,21 @@ mot* init_mots(char* fichier_vocab, int* nombreMots){
 
 			for(j=0;j<strlen(buffer);j++){
 				if(buffer[j] == '\n')
-					vu = 1;
+					res[i].caractere[j] = '\0';
 				else
-					res[i].caractere[j-vu] = buffer[j];
+					res[i].caractere[j] = buffer[j];
 			}
 			res[i].id = i;
 			res[i].longueur = strlen(buffer) - 1;
-			vu = 0;
 		}
 
 		fclose(fichier);
 	}
+	printf("Les mots ont ete correctements charges en memoire. \n");
 	return res;
 }
 
-corpus* init_phrases(char* fichier_train, mot* Mots){
+corpus* init_phrases(char* fichier_train, mot* Mots, categorie* Categories){
 
 	//Declarations
 
@@ -139,7 +137,7 @@ corpus* init_phrases(char* fichier_train, mot* Mots){
 				//Allocation des phrases
 				res->phrases[numPhrase].id = numPhrase;
 				res->phrases[numPhrase].nb_mots = numMot;
-				res->phrases[numPhrase].categories = (categorie*)malloc(sizeof(categorie)*numMot);
+				res->phrases[numPhrase].categories = (categorie**)malloc(sizeof(categorie*)*numMot);
 				if(res->phrases[numPhrase].categories == NULL){
 					fprintf(stderr,"Erreur d'allocation memoire.\n");
 					exit(1);
@@ -160,7 +158,7 @@ corpus* init_phrases(char* fichier_train, mot* Mots){
 					//Allocation des phrases
 					res->phrases[numPhrase].id = numPhrase;
 					res->phrases[numPhrase].nb_mots = numMot;
-					res->phrases[numPhrase].categories = (categorie*)malloc(sizeof(categorie)*numMot);
+					res->phrases[numPhrase].categories = (categorie**)malloc(sizeof(categorie*)*numMot);
 					if(res->phrases[numPhrase].categories == NULL){
 						fprintf(stderr,"Erreur d'allocation memoire.\n");
 						exit(1);
@@ -192,7 +190,7 @@ corpus* init_phrases(char* fichier_train, mot* Mots){
 				if(buffer[0] != '\n'){
 					sscanf(buffer,"%i %i",&idMot,&idCategorie);
 					//fprintf(stderr,"[Debug] : numMot = %i/%i | numPhrase = %i/%i | Contenu : %i \n",numMot,res->phrases[numPhrase].nb_mots,numPhrase,res->nb_phrases,idCategorie);
-					res->phrases[numPhrase].categories[numMot] = idCategorie;
+					res->phrases[numPhrase].categories[numMot] = &Categories[idCategorie];
 					res->phrases[numPhrase].mots[numMot] = &Mots[idMot];
 					numMot++;
 					nbMotsCorpus++;
@@ -210,7 +208,7 @@ corpus* init_phrases(char* fichier_train, mot* Mots){
 
 		fclose(fichier);
 	}
-
+	printf("Le corpus a ete correctement charge en memoire. \n");
 	return res;
 }
 
@@ -219,6 +217,15 @@ void afficher_phrase(phrase p){
 	printf("Phrase %i : ",p.id);
 	for(i=0;i<p.nb_mots;i++){
 		printf("%s ",p.mots[i]->caractere);
+	}
+	printf("\n");
+}
+
+void afficher_categories_phrase(phrase p){
+	int i;
+	printf("Phrase %i : ",p.id);
+	for(i=0;i<p.nb_mots;i++){
+		printf(" %s |",p.categories[i]->nom);
 	}
 	printf("\n");
 }
@@ -236,8 +243,84 @@ void free_phrases(corpus* Corp){
 	int i;
 	for(i=0;i<Corp->nb_phrases;i++){
 		free(Corp->phrases[i].mots);
+		free(Corp->phrases[i].categories);
 	}
 	free(Corp->phrases);
 	free(Corp);
 	printf("Corpus libere en memoire.\n");
+}
+
+categorie* init_categories(char* fichier_vocab,int* nombreCategories){
+	//Declarations
+
+	FILE* fichier = NULL;
+
+	char buffer[LIGNE_BUFFER];
+
+	int nbCats = 0;
+
+	categorie *res = NULL;
+
+	int i,j;
+
+	fichier = fopen(fichier_vocab,"r+");
+	if ( fichier == NULL){
+		fprintf(stderr,"erreur d'ouverture du fichier categories.");
+		exit(1);
+	}
+	else{
+
+		/* Recuperation du nombre de categories */
+		while( fgets(buffer,LIGNE_BUFFER,fichier) != NULL){
+			if(buffer[0] != '#') /* on ne compte pas les commentaires comme des mots */
+				nbCats++;
+		}
+
+		*nombreCategories = nbCats;
+
+		//on alloue toutes les categories
+		res = (categorie*)malloc(sizeof(categorie) * nbCats);
+		if(res == NULL){
+			fprintf(stderr,"Erreur d'allocation memoire");
+			fclose(fichier);
+			exit(1);
+		}
+
+		fseek(fichier,0,SEEK_SET); // On revient au debut du fichier
+
+		for(i=0;i<nbCats;i++){
+			fgets(buffer,LIGNE_BUFFER,fichier);
+			//Allocation du mot
+			res[i].nom = (char*)malloc(sizeof(char) * (strlen(buffer)));
+			if(res[i].nom == NULL){
+				fprintf(stderr,"Erreur d'allocation.\n");
+				fclose(fichier);
+				exit(1);
+			}
+
+			//copie du mot (sans le \n) :
+
+			for(j=0;j<strlen(buffer);j++){
+				if(buffer[j] == '\n')
+					res[i].nom[j] = '\0';
+				else
+					res[i].nom[j] = buffer[j];
+			}
+			res[i].id = i;
+		}
+
+		fclose(fichier);
+	}
+	printf("Les categories ont ete correctement chargees en memoire. \n");
+	return res;
+
+}
+
+void free_categories(categorie* Categories,int nombreCategories){
+	int i;
+	for(i=0;i<nombreCategories;i++){
+		free(Categories[i].nom);
+	}
+	free(Categories);
+	printf("Categories liberes en memoire.\n");
 }

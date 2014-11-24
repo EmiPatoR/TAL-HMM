@@ -3,12 +3,12 @@ TARGET   = hmm
 
 CC       = gcc
 # compiling flags here
-CFLAGS   = -std=c99 -Wall -pedantic -I includes/
+CFLAGS   = -g -std=c99 -Wall -pedantic -I includes/
 
 LINKER   = gcc -o
 # linking flags here
 LFLAGS   = -Wall -I includes/
-LIB = -lm
+LIB = -lm -lpthread
 
 # change these to set the proper directories where each files shoould be
 SRCDIR  = src

@@ -1,25 +1,25 @@
 #include "structures.h"
 #include "hmm.h"
 
-categorie* Viterbi(hmm* h, phrase p){
+categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 
 	//déclaration de variables
-
 	int i,j,k;
-	int val_max = 0, i_max = 0;
+	int i_max = 0;
 
-	int valeur_actuelle = 0;
+	double val_max = MINUS_INF;
+	double valeur_actuelle = MINUS_INF;
 
 	double **T1;
 	double **T2;
 
-	categorie tmp;
+	int tmp = 0;
 
 
 	// Allocations
 
 	//Alloc de la valeur de retour
-	categorie* res = (categorie*)malloc(sizeof(categorie)*p.nb_mots); // On crée un tableau de la taille du nombre de mots dans la phrase
+	categorie** res = (categorie**)malloc(sizeof(categorie*)*p.nb_mots); // On crée un tableau de la taille du nombre de mots dans la phrase
 	if(res == NULL){
 		fprintf(stderr,"Erreur d'allocation !");
 		exit(1);
@@ -53,15 +53,23 @@ categorie* Viterbi(hmm* h, phrase p){
 		}
 	}
 
-
 	//Initialisations
-	for(i=0;i<h->nbe;i++)
-		res[i] = i;
-
+	for(i=0;i<p.nb_mots;i++)
+		res[i] =  NULL;
+	//ERREUR ICI
 	for(i=0;i<h->nbe;i++){ // Pour chaque etat
 		T1[i][0] = h->PI[i] + h->E[i][p.mots[0]->id];
 		T2[i][0] = 0.0;
+		//fprintf(stderr, "T[%i][0] = %lf ",i,T1[i][0]);
 	}
+	//fprintf(stderr,"\n");
+
+/*fprintf(stderr,"[DEBUG] PI = [ ");
+	for(i=0;i<h->nbe;i++){
+		fprintf(stderr, "%lf",T1[i][0]);
+	}
+	fprintf(stderr,"] \n");
+*/
 
 	// Calculs de T1 et T2
 	for(i=1;i<p.nb_mots;i++){
@@ -75,12 +83,12 @@ categorie* Viterbi(hmm* h, phrase p){
 			}
 			T1[j][i] = val_max;
 			T2[j][i] = i_max;
+			val_max = MINUS_INF;
 		}
 	}
 
-
 	// Recuperation de la solution
-	val_max = 0;
+	val_max = MINUS_INF;
 	for(i=0;i<h->nbe;i++){
 		if(T1[i][p.nb_mots -1] > val_max){
 			val_max = T1[i][p.nb_mots -1];
@@ -88,11 +96,22 @@ categorie* Viterbi(hmm* h, phrase p){
 		}
 	}
 
-	res[p.nb_mots - 1] = tmp;
-	for(i=p.nb_mots-1;i>0;i--){
+
+	res[p.nb_mots - 1] = &Categories[tmp];
+
+	for(i=(p.nb_mots)-1;i>0;i--){
 		tmp = T2[tmp][i];
-		res[i-1] = tmp;
+		res[i-1] = &Categories[tmp];
 	}
 
+	//liberation de T1 et T2
+	for(i=0;i<h->nbe;i++){
+		free(T1[i]);
+		free(T2[i]);
+	}
+	free(T1);
+	free(T2);
+
+	//retour du resultat
 	return res;
 }

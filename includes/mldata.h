@@ -11,15 +11,15 @@
 typedef struct{
 
 	int samples_count;
-	int active_samples;
+	int train_samples_count;
+	int test_samples_count;
 
-	int *samples_id;
 	int *train_samples_id;
 	int *test_samples_id;
 
 }MlData;
 
-MlData* load_from_file(const char* filename, TrainTestSplit tts);
+MlData* allocate_mldata(int nbFeatures, TrainTestSplit *tts);
 void free_data(MlData* data);
 
 #endif

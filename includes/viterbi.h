@@ -4,6 +4,6 @@
 #include "structures.h"
 #include "hmm.h"
 
-categorie* Viterbi(hmm* h, phrase p);
+categorie** Viterbi(hmm* h, phrase p, categorie* Categories);
 
 #endif

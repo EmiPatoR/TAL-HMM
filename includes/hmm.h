@@ -29,6 +29,7 @@ typedef struct
 hmm* allocate_hmm(int nbe, int nbo);
 
 void intialize_hmm(hmm *h);
+void init_hmm_inf(hmm *h);
 void print_hmm(hmm *h, char *file_name);
 void print_hmm_verbose(hmm *h, char *file_name);
 
