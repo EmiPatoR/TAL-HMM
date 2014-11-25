@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <math.h>
 #include "perceptron.h"
 #include "hmm.h"
 #include "viterbi.h"
 #include "structures.h"
-
 
 void free_Mat(double** M,int nbe){
 	int i;
@@ -44,6 +44,7 @@ double** PhyT(int k, phrase m, int nbe){
 	}
 	return T;
 }
+
 double** PhyE(int k, phrase m, int nbe, int nbo){
 	int i,j;
 	double** E = NULL;
@@ -93,6 +94,13 @@ void addition_mat(double** M1, double** M2,int nbe, int c){
 	int i,j;
 	for(i=0;i<nbe;i++){
 		for(j=0;j<c;j++){
+			/*
+			__asm__ volatile (
+			        "lock addl %1, %0\n" // add incr to operand
+			        : "=m" (M1[i][j])
+			        : "r" (M2[i][j]), "m" (M1[i][j])
+			    );
+			*/
 			M1[i][j] = M1[i][j] + M2[i][j];
 		}
 	}
@@ -116,6 +124,12 @@ void addition_vect( double* V1 , double* V2 , int nbe){
 	int i;
 	for (i=0;i<nbe;i++){
 		V1[i] = V1[i] + V2[i];
+		/*__asm__ volatile (
+					        "lock addl %1, %0\n" // add incr to operand
+					        : "=m" (V1[i])
+					        : "r" (V2[i]), "m" (V1[i])
+					    );
+		*/
 	}
 	free_PI(V2);
 }
@@ -172,60 +186,149 @@ void Perceptron(int I , corpus *Corp,hmm *h, MlData *data, categorie *Categories
 	}*/
 }
 
-void Perceptron_multi_thread(int I , corpus *Corp,hmm *h, MlData *data, categorie *Categories){
-	int compteur = 0;
+static void *tache(void *p_data){
+	data_thread *p = p_data;
+	phrase test;
 	int i,k;
 	double **M = NULL;
 	double *V = NULL;
-	phrase test;
+	for(i=p->i_debut;i<p->i_fin;i++){
+		//if(p->id_thread == 0)
+			//printf("T%i : Phrase %i. OK \n",p->id_thread,i);
 
-	pthread_t tache;
+		//Phrase de test
+		pthread_mutex_lock (&p->sh->mut);
+			test.categories = Viterbi(p->sh->h,p->Corp->phrases[p->data->train_samples_id[i]],p->Categories);
+		pthread_mutex_unlock (&p->sh->mut);
+		//test.categories = Corp->phrases[data->train_samples_id[i]].categories;
+		test.mots = p->Corp->phrases[p->data->train_samples_id[i]].mots;
+		test.id = p->Corp->phrases[p->data->train_samples_id[i]].id;
+		test.nb_mots = p->Corp->phrases[p->data->train_samples_id[i]].nb_mots;
+		//Pour PI
+		V = PhyPi(p->Corp->phrases[p->data->train_samples_id[i]],p->sh->h->nbe);
+		pthread_mutex_lock (&p->sh->mut);
+			addition_vect(p->sh->h->PI,V,p->sh->h->nbe);
+		pthread_mutex_unlock (&p->sh->mut);
+
+		V = PhyPi(test,p->sh->h->nbe);
+		inverse_vect(V,p->sh->h->nbe);
+		pthread_mutex_lock (&p->sh->mut);
+			addition_vect(p->sh->h->PI,V,p->sh->h->nbe);
+		pthread_mutex_unlock (&p->sh->mut);
+
+		//Pour T
+		for (k=0;k<(p->Corp->phrases[p->data->train_samples_id[i]].nb_mots)-1;k++){
+			M = PhyT(k,p->Corp->phrases[p->data->train_samples_id[i]],p->sh->h->nbe);
+			pthread_mutex_lock (&p->sh->mut);
+				addition_mat(p->sh->h->T,M,p->sh->h->nbe,p->sh->h->nbe);
+			pthread_mutex_unlock (&p->sh->mut);
+			M = PhyT(k,test,p->sh->h->nbe);
+			inverse_mat(M,p->sh->h->nbe,p->sh->h->nbe);
+			pthread_mutex_lock (&p->sh->mut);
+				addition_mat(p->sh->h->T,M,p->sh->h->nbe,p->sh->h->nbe);
+			pthread_mutex_unlock (&p->sh->mut);
+
+
+		}
+
+		//POUR E
+		for(k=0;k<(p->Corp->phrases[p->data->train_samples_id[i]].nb_mots);k++){
+			M = PhyE(k,p->Corp->phrases[p->data->train_samples_id[i]],p->sh->h->nbe,p->sh->h->nbo);
+			pthread_mutex_lock (&p->sh->mut);
+				addition_mat(p->sh->h->E,M,p->sh->h->nbe,p->sh->h->nbo);
+			pthread_mutex_unlock (&p->sh->mut);
+			M = PhyE(k,test,p->sh->h->nbe,p->sh->h->nbo);
+			inverse_mat(M,p->sh->h->nbe,p->sh->h->nbo);
+			pthread_mutex_lock (&p->sh->mut);
+				addition_mat(p->sh->h->E,M,p->sh->h->nbe,p->sh->h->nbo);
+			pthread_mutex_unlock (&p->sh->mut);
+
+
+		}
+
+		free(test.categories); // On libere Cc
+	}
+	return NULL;
+}
+
+void Perceptron_multi_thread(int I , corpus *Corp,hmm *h, MlData *data, categorie *Categories){
+	int compteur = 0;
+	int i;
+
+	int taille_bloc[NB_CORE];
+	pthread_t t[NB_CORE];
+	data_thread data_t[NB_CORE];
+
+	int nb_div = 0;
+	int tmp = NB_CORE;
+	//int quantite = data->train_samples_count;
+	int quantite = data->train_samples_count;
+
+	pthread_mutexattr_t mta;
+	pthread_mutexattr_init(&mta);
+	shared sh;
+	sh.h = h;
+	pthread_mutex_init(&sh.mut,&mta);
 
 	//Repartition des donnees:
+	while(tmp%2 == 0){
+		nb_div++;
+		tmp = tmp / 2;
+	}
 
+
+
+	repart_data(quantite,1,taille_bloc,0,nb_div);
+
+	for(i=0;i<NB_CORE;i++){
+		data_t[i].Categories = Categories;
+		data_t[i].Corp = Corp;
+		data_t[i].MatE = NULL;
+		data_t[i].MatT = NULL;
+		data_t[i].VectPI = NULL;
+		data_t[i].data = data;
+		data_t[i].sh = &sh;
+		data_t[i].i_debut = 0;
+		data_t[i].i_fin = 0;
+		data_t[i].id_thread = i;
+		if(i==0){
+			data_t[i].i_debut = 0;
+			data_t[i].i_fin = taille_bloc[i] - 1;
+		}
+		else{
+			data_t[i].i_debut = data_t[i-1].i_fin+1;
+			data_t[i].i_fin = data_t[i].i_debut + (taille_bloc[i] - 1);
+		}
+	}
 
 	while(compteur <I){
-		for(i=0;i<data->train_samples_count;i++){
-			//printf("phrase = %i\n",i);
-			//Phrase de test
-			test.categories = Viterbi(h,Corp->phrases[data->train_samples_id[i]],Categories);
-			//test.categories = Corp->phrases[data->train_samples_id[i]].categories;
-			test.mots = Corp->phrases[data->train_samples_id[i]].mots;
-			test.id = Corp->phrases[data->train_samples_id[i]].id;
-			test.nb_mots = Corp->phrases[data->train_samples_id[i]].nb_mots;
-			//fprintf(stderr,"[DEBUG] : ERREUR : i = %i \n",i);
 
-			//Pour PI
-			V = PhyPi(Corp->phrases[data->train_samples_id[i]],h->nbe);
-			addition_vect(h->PI,V,h->nbe);
-			V = PhyPi(test,h->nbe);
-			inverse_vect(V,h->nbe);
-			addition_vect(h->PI,V,h->nbe);
-
-			//Pour T
-			for (k=0;k<(Corp->phrases[data->train_samples_id[i]].nb_mots)-1;k++){
-				M = PhyT(k,Corp->phrases[data->train_samples_id[i]],h->nbe);
-				addition_mat(h->T,M,h->nbe,h->nbe);
-				M = PhyT(k,test,h->nbe);
-				inverse_mat(M,h->nbe,h->nbe);
-				addition_mat(h->T,M,h->nbe,h->nbe);
-			}
-
-			//POUR E
-			for(k=0;k<(Corp->phrases[data->train_samples_id[i]].nb_mots);k++){
-				M = PhyE(k,Corp->phrases[data->train_samples_id[i]],h->nbe,h->nbo);
-				addition_mat(h->E,M,h->nbe,h->nbo);
-				M = PhyE(k,test,h->nbe,h->nbo);
-				inverse_mat(M,h->nbe,h->nbo);
-				addition_mat(h->E,M,h->nbe,h->nbo);
-			}
-
-			free(test.categories); // On libere Cc
-			printf("phrase %i \n",i);
+		for(i=0;i<NB_CORE;i++){
+			pthread_create (&t[i], NULL, tache, &data_t[i]);
 		}
+
+		for(i=0;i<NB_CORE;i++){
+			pthread_join (t[i], NULL);
+		}
+
+		printf("I = %i - termine - \n",compteur);
 		compteur++;
 	}
-	/*for(k=0;k<h->nbe;k++){
-		h->PI[k] = log(h->PI[k]);
-	}*/
+	pthread_mutex_destroy(&sh.mut);
+}
+
+void repart_data(int quantite,int nb_div,int *taille_bloc,int num,int nb_div_total){
+	if(nb_div > nb_div_total){
+		taille_bloc[num] = quantite;
+	}
+	else{
+		if(quantite%2 == 1){
+			repart_data(floor(quantite/2.0),nb_div+1,taille_bloc,num,nb_div_total);
+			repart_data(ceil(quantite/2.0),nb_div+1,taille_bloc,num+pow(2,nb_div_total-nb_div),nb_div_total);
+		}
+		else{
+			repart_data((quantite/2),nb_div+1,taille_bloc,num,nb_div_total);
+			repart_data((quantite/2),nb_div+1,taille_bloc,num+pow(2,nb_div_total-nb_div),nb_div_total);
+		}
+	}
 }

@@ -103,6 +103,42 @@ void intialize_hmm(hmm *h)
 	}
 }
 
+void print_hmm_perceptron(hmm *h, char *file_name)
+{
+	int  i,j;
+	FILE *f = stdout;
+
+	if(file_name)
+		f = fopen(file_name, "w");
+	else
+		f = stdout;
+
+	fprintf(f, "#nb etats\n");
+	fprintf(f, "%d\n", h->nbe);
+	fprintf(f, "#nb observables\n");
+	fprintf(f, "%d\n", h->nbo);
+	fprintf(f, "#probabilites initiales\n");
+	for(i=0; i < h->nbe; i++){
+		fprintf(f, "%f\n", (h->PI[i]));
+	}
+
+	fprintf(f, "#probabilites de transition\n");
+	for(i=0; i < h->nbe; i++){
+		for(j=0; j < h->nbe; j++){
+			fprintf(f, "%f\n", (h->T[i][j]));
+		}
+	}
+
+	fprintf(f, "#probabilites d'emission\n");
+	for(i=0; i < h->nbe; i++){
+		for(j=0; j < h->nbo; j++){
+			fprintf(f, "%f\n", (h->E[i][j]));
+		}
+	}
+	if(file_name)
+		fclose(f);
+}
+
 void print_hmm(hmm *h, char *file_name)
 {
 	int  i,j;
@@ -260,6 +296,70 @@ hmm *load_hmm(char *file_name)
 			ligne_suivante(f, buff);
 			sscanf(buff, "%lf", &(h->E[i][j]));
 			h->E[i][j] = log(h->E[i][j]);
+			j++;
+		}
+		i++;
+	}
+
+	fclose(f);
+	return h;
+}
+
+hmm *load_hmm_perceptron(char *file_name)
+{
+	char buff[LONG_LIGNE];
+	FILE *f = fopen(file_name, "r");
+	hmm *h;
+	int nbe, nbo;
+	int i,j;
+
+	if(f == NULL){
+		fprintf(stderr, "impossible d'ouvrir le fichier %s\n", file_name);
+		exit(1);
+	}
+
+	/* lecture du nombre d'etats */
+	ligne_suivante(f, buff);
+	sscanf(buff, "%d", &nbe);
+
+	/* lecture du nombre de symboles d'emission */
+	ligne_suivante(f, buff);
+	sscanf(buff, "%d", &nbo);
+
+	/* allocation du hmm */
+	h = allocate_hmm(nbe, nbo);
+
+	/* lecture des proba initiales */
+	i = 0;
+	while(i < nbe){
+		ligne_suivante(f, buff);
+		sscanf(buff, "%lf", &(h->PI[i]));
+		//h->PI[i] = log(h->PI[i]);
+		i++;
+	}
+
+	/* lecture des proba de transition */
+	i = 0;
+	while(i < nbe){
+		j = 0;
+		while(j < nbe){
+			ligne_suivante(f, buff);
+			sscanf(buff, "%lf", &(h->T[i][j]));
+			//h->T[i][j] = log(h->T[i][j]);
+			j++;
+		}
+		i++;
+	}
+
+
+	/* lecture des proba d'emssion */
+	i = 0;
+	while(i < nbe){
+		j = 0;
+		while(j < nbo){
+			ligne_suivante(f, buff);
+			sscanf(buff, "%lf", &(h->E[i][j]));
+			//h->E[i][j] = log(h->E[i][j]);
 			j++;
 		}
 		i++;

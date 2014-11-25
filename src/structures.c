@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "viterbi.h"
 #include "structures.h"
 #include "mldata.h"
 
@@ -335,3 +336,33 @@ void detect_mots_inconnus(corpus *Corp,MlData *data){
 		}
 	}
 }
+
+double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories){
+	double resultat = 0.0;
+	int i,j;
+	int *erreurs = NULL;
+	int nb_erreurs = 0;
+	int nb_mots = 0;
+	phrase test;
+	erreurs = (int*) calloc(h->nbe,sizeof(int));
+	for(i=0;i<data->test_samples_count;i++){
+		test.mots = Corp->phrases[data->test_samples_id[i]].mots;
+		test.id = Corp->phrases[data->test_samples_id[i]].id;
+		test.nb_mots = Corp->phrases[data->test_samples_id[i]].nb_mots;
+		test.categories = Viterbi(h,Corp->phrases[data->test_samples_id[i]],Categories);
+		for(j=0;j<test.nb_mots;j++){
+			if(test.categories[j]->id != Corp->phrases[data->test_samples_id[i]].categories[j]->id){
+				erreurs[test.categories[j]->id]++;
+				nb_erreurs++;
+			}
+			nb_mots++;
+		}
+		free(test.categories);
+		//fprintf(stderr,"[DEBUG]Bug a i = %i \n",i);
+	}
+	resultat = (double)((double)nb_erreurs/(double)nb_mots);
+	free(erreurs);
+	return resultat;
+}
+
+
