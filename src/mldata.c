@@ -15,7 +15,6 @@ MlData* allocate_mldata(int nbFeatures, TrainTestSplit *tts){
 		fprintf(stderr, "erreur d'allocation\n");
 		exit(1);
 	}
-	//fprintf(stderr,"[DEBUG]\n");
 	data->samples_count = nbFeatures;
 	data->train_samples_count = 0;
 	data->test_samples_count = 0;
@@ -40,9 +39,9 @@ MlData* allocate_mldata(int nbFeatures, TrainTestSplit *tts){
 		exit(1);
 	}
 
-	//Radomization ou pas
+	/*Radomization ou pas*/
 
-	//Cas 1 : pas de random (facile)
+	/*Cas 1 : pas de random (facile)*/
 	for(i=0;i<data->train_samples_count;i++){
 		data->train_samples_id[i] = i;
 	}

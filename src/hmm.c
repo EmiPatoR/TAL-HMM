@@ -334,7 +334,6 @@ hmm *load_hmm_perceptron(char *file_name)
 	while(i < nbe){
 		ligne_suivante(f, buff);
 		sscanf(buff, "%lf", &(h->PI[i]));
-		//h->PI[i] = log(h->PI[i]);
 		i++;
 	}
 
@@ -345,7 +344,6 @@ hmm *load_hmm_perceptron(char *file_name)
 		while(j < nbe){
 			ligne_suivante(f, buff);
 			sscanf(buff, "%lf", &(h->T[i][j]));
-			//h->T[i][j] = log(h->T[i][j]);
 			j++;
 		}
 		i++;
@@ -359,7 +357,6 @@ hmm *load_hmm_perceptron(char *file_name)
 		while(j < nbo){
 			ligne_suivante(f, buff);
 			sscanf(buff, "%lf", &(h->E[i][j]));
-			//h->E[i][j] = log(h->E[i][j]);
 			j++;
 		}
 		i++;

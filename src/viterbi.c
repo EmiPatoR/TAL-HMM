@@ -3,7 +3,7 @@
 
 categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 
-	//déclaration de variables
+	/*déclaration de variables*/
 	int i,j,k;
 	int i_max = 0;
 
@@ -16,16 +16,17 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 	int tmp = 0;
 
 
-	// Allocations
+	/* Allocations*/
 
-	//Alloc de la valeur de retour
-	categorie** res = (categorie**)malloc(sizeof(categorie*)*p.nb_mots); // On crée un tableau de la taille du nombre de mots dans la phrase
+	/*Alloc de la valeur de retour*/
+	/* On crée un tableau de la taille du nombre de mots dans la phrase*/
+	categorie** res = (categorie**)malloc(sizeof(categorie*)*p.nb_mots);
 	if(res == NULL){
 		fprintf(stderr,"Erreur d'allocation !");
 		exit(1);
 	}
 
-	//Alloc de T1
+	/*Alloc de T1*/
 	T1 = (double**)malloc(sizeof(double*)*h->nbe);
 	if(T1 == NULL){
 		fprintf(stderr, "erreur d'allocation\n");
@@ -39,7 +40,7 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 		}
 	}
 
-	//Alloc de T2
+	/*Alloc de T2*/
 	T2 = (double**)malloc(sizeof(double*)*h->nbe);
 	if(T2 == NULL){
 		fprintf(stderr, "erreur d'allocation\n");
@@ -53,28 +54,19 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 		}
 	}
 
-	//Initialisations
+	/*Initialisations*/
 	for(i=0;i<p.nb_mots;i++)
 		res[i] =  NULL;
-	//ERREUR ICI
-	for(i=0;i<h->nbe;i++){ // Pour chaque etat
+
+	for(i=0;i<h->nbe;i++){ /* Pour chaque etat*/
 		if(p.mots[0]->inconnu == 0)
 			T1[i][0] = h->PI[i] + h->E[i][p.mots[0]->id];
 		else
 			T1[i][0] = h->PI[i];
 		T2[i][0] = 0.0;
-		//fprintf(stderr, "T[%i][0] = %lf ",i,T1[i][0]);
 	}
-	//fprintf(stderr,"\n");
 
-/*fprintf(stderr,"[DEBUG] PI = [ ");
-	for(i=0;i<h->nbe;i++){
-		fprintf(stderr, "%lf",T1[i][0]);
-	}
-	fprintf(stderr,"] \n");
-*/
-
-	// Calculs de T1 et T2
+	/* Calculs de T1 et T2*/
 	for(i=1;i<p.nb_mots;i++){
 
 		for(j=0;j<h->nbe;j++){
@@ -94,7 +86,7 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 		}
 	}
 
-	// Recuperation de la solution
+	/* Recuperation de la solution*/
 	val_max = MINUS_INF;
 	for(i=0;i<h->nbe;i++){
 		if(T1[i][p.nb_mots -1] >= val_max){
@@ -111,7 +103,7 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 		res[i-1] = &Categories[tmp];
 	}
 
-	//liberation de T1 et T2
+	/*liberation de T1 et T2*/
 	for(i=0;i<h->nbe;i++){
 		free(T1[i]);
 		free(T2[i]);
@@ -119,6 +111,6 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 	free(T1);
 	free(T2);
 
-	//retour du resultat
+	/*retour du resultat*/
 	return res;
 }

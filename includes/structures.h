@@ -3,7 +3,6 @@
 
 #include "mldata.h"
 #include "hmm.h"
-//typedef int categorie;
 
 typedef struct{
 	int id;
@@ -44,5 +43,7 @@ void detect_mots_inconnus(corpus *Corp,MlData *data);
 double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories, int *erreursCat, int* nb_m_test);
 categorie* init_categories(char* fichier_vocab,int* nombreCategories);
 void free_categories(categorie* Categories,int nombreCategories);
+
+void advance_cursor();
 
 #endif

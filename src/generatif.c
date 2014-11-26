@@ -56,7 +56,7 @@ void calc_E(hmm *h,corpus* Corp,MlData *data){
 		exit(1);
 	}
 
-	//Init
+	/*Init*/
 	for(i=0;i<h->nbe;i++){
 		occ[i] = 0;
 		for(j=0;j<h->nbo;j++){
@@ -65,7 +65,7 @@ void calc_E(hmm *h,corpus* Corp,MlData *data){
 	}
 
 
-	//Calcul
+	/*Calcul*/
 	for(i=0;i<h->nbe;i++){
 		for(j=0;j<data->train_samples_count;j++){
 			for(k=0;k<Corp->phrases[data->train_samples_id[j]].nb_mots;k++){
@@ -78,9 +78,8 @@ void calc_E(hmm *h,corpus* Corp,MlData *data){
 		}
 	}
 
-	//remplir E
+	/*remplir E*/
 	for(i=0;i<h->nbe;i++){
-		//occ[i] = 0;
 		for(j=0;j<h->nbo;j++){
 			if(num[i][j] == 0)
 				h->E[i][j] = MINUS_INF;
@@ -89,7 +88,7 @@ void calc_E(hmm *h,corpus* Corp,MlData *data){
 		}
 	}
 
-	//liberation memoire
+	/*liberation memoire*/
 
 	for(i=0;i<h->nbe;i++){
 		free(num[i]);
@@ -123,14 +122,14 @@ void calc_T(hmm *h,corpus* Corp,MlData *data){
 		exit(1);
 	}
 
-	//Init
+	/*Init*/
 	for(i=0;i<h->nbe;i++){
 		occ[i] = 0;
 		for(j=0;j<h->nbe;j++){
 			num[i][j] = 0;
 		}
 	}
-	//Calcul
+	/*Calcul*/
 	for(i=0;i<h->nbe;i++){
 		for(j=0;j<data->train_samples_count;j++){
 			for(k=0;k<Corp->phrases[data->train_samples_id[j]].nb_mots;k++){
@@ -154,7 +153,7 @@ void calc_T(hmm *h,corpus* Corp,MlData *data){
 	}
 
 
-	//remplir T
+	/*remplir T*/
 
 	for(i=0;i<h->nbe;i++){
 		for(j=0;j<h->nbe;j++){

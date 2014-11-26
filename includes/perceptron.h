@@ -30,6 +30,7 @@ typedef struct{
 	int i_debut;
 	int i_fin;
 	int id_thread;
+	int *termine;
 	corpus *Corp;
 	MlData *data;
 	categorie *Categories;

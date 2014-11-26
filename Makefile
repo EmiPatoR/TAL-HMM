@@ -3,7 +3,7 @@ TARGET   = hmm
 
 CC       = gcc
 # compiling flags here
-CFLAGS   = -g -std=c99 -Wall -pedantic -I includes/
+CFLAGS   = -g -std=c99 -ansi -Wall -pedantic -I includes/
 
 LINKER   = gcc -o
 # linking flags here
