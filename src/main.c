@@ -11,7 +11,10 @@
 
 int main()
 {
+	int i;
+	int nb_mots_test = 0;
 	double eval;
+	int *erreursCat = NULL;
 	int nbMots = 0;
 	int nbCategories = 0;
 	TrainTestSplit* tts = NULL;
@@ -38,7 +41,7 @@ int main()
 	load_portion(tts,0.9,0);
 	data = allocate_mldata(Corp->nb_phrases,tts);
 
-	h = allocate_hmm(nbCategories,nbMots);
+	//h = allocate_hmm(nbCategories,nbMots);
 
 	printf("-------------- Detection mots inconnus --------------------- \n");
 	detect_mots_inconnus(Corp,data);
@@ -50,13 +53,14 @@ int main()
 	//calc_T(h,Corp,data);
 
 	//Modele discriminant
-	intialize_hmm(h);
+	//intialize_hmm(h);
 	//Perceptron(1,Corp,h,data,Categories);
-	Perceptron_multi_thread(20,Corp,h,data,Categories);
+	//Perceptron_multi_thread(20,Corp,h,data,Categories);
 	//h = load_hmm("percep_tr90_i1");
-	//h = load_hmm_perceptron("percep_multi_tr90_i1");
+	h = load_hmm_perceptron("percep_multi_tr90_i20");
+	Perceptron_multi_thread(5,Corp,h,data,Categories);
 	//print_hmm(h,"TestMulti");
-	print_hmm_perceptron(h,"percep_multi_tr90_i20");
+	print_hmm_perceptron(h,"percep_multi_tr90_i25");
 
 	//Cc = Viterbi(h,Corp->phrases[data->test_samples_id[0]],Categories);
 	Cc = Viterbi(h,Corp->phrases[data->test_samples_id[32]],Categories);
@@ -78,19 +82,33 @@ int main()
 	printf("La taille de l'ensemble d'entrainement est : %i \n",data->train_samples_count);
 	printf("La taille de l'ensemble de test est : %i \n",data->test_samples_count);
 	printf("-------------- Phrase test --------------------- \n");
-
+	printf("Contenu de la phrase :\n");
 	afficher_phrase(Corp->phrases[data->test_samples_id[32]]);
+	printf("\n");
+	printf("Categories correctes de la phrase :\n");
 	afficher_categories_phrase(Corp->phrases[data->test_samples_id[32]]);
+	printf("\n");
+	printf("Categories predites de la phrase :\n");
 	afficher_categories_phrase(*test);
-	int i;
+	printf("\n");
+	/*
 	for(i=0;i<test->nb_mots;i++){
 		printf(" %i " ,test->mots[i]->inconnu);
 	}
 	printf("\n");
+	*/
 	printf("-------------- Performances --------------------------- \n");
-	eval = eval_Corpus(Corp,data,h,Categories);
+	erreursCat = (int*) calloc(h->nbe,sizeof(int));
+	eval = eval_Corpus(Corp,data,h,Categories,erreursCat,&nb_mots_test);
 	printf ("Performance : %lf %% \n",(100-(eval*100)));
-	printf ("Taux d'erreur : %lf %% \n",eval);
+	printf ("Taux d'erreur : %lf %% \n",eval*100);
+	printf ("Nombre d'erreurs : %i sur %i mots.\n",(int)(eval*nb_mots_test),nb_mots_test);
+	printf ("Details :\n");
+	for(i=0;i<h->nbe;i++){
+		printf("\t - Erreur sur %s : %i (%lf %%)\n",Categories[i].nom,erreursCat[i],((double)erreursCat[i]/(double)nb_mots_test));
+	}
+	printf("\n");
+	free(erreursCat);
 	printf("-------------- Liberation memoire --------------------- \n");
 
 	free(test->categories);

@@ -337,14 +337,12 @@ void detect_mots_inconnus(corpus *Corp,MlData *data){
 	}
 }
 
-double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories){
+double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories, int *erreursCat, int* nb_m_test){
 	double resultat = 0.0;
 	int i,j;
-	int *erreurs = NULL;
 	int nb_erreurs = 0;
 	int nb_mots = 0;
 	phrase test;
-	erreurs = (int*) calloc(h->nbe,sizeof(int));
 	for(i=0;i<data->test_samples_count;i++){
 		test.mots = Corp->phrases[data->test_samples_id[i]].mots;
 		test.id = Corp->phrases[data->test_samples_id[i]].id;
@@ -352,7 +350,7 @@ double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories){
 		test.categories = Viterbi(h,Corp->phrases[data->test_samples_id[i]],Categories);
 		for(j=0;j<test.nb_mots;j++){
 			if(test.categories[j]->id != Corp->phrases[data->test_samples_id[i]].categories[j]->id){
-				erreurs[test.categories[j]->id]++;
+				erreursCat[Corp->phrases[data->test_samples_id[i]].categories[j]->id]++;
 				nb_erreurs++;
 			}
 			nb_mots++;
@@ -360,8 +358,9 @@ double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories){
 		free(test.categories);
 		//fprintf(stderr,"[DEBUG]Bug a i = %i \n",i);
 	}
+	*nb_m_test = nb_mots;
 	resultat = (double)((double)nb_erreurs/(double)nb_mots);
-	free(erreurs);
+	//free(erreurs);
 	return resultat;
 }
 

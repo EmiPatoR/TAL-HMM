@@ -41,7 +41,7 @@ mot* init_mots(char* fichier_vocab,int* nombreMots);
 void free_mots(mot* Mots,int nombreMots);
 
 void detect_mots_inconnus(corpus *Corp,MlData *data);
-double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories);
+double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories, int *erreursCat, int* nb_m_test);
 categorie* init_categories(char* fichier_vocab,int* nombreCategories);
 void free_categories(categorie* Categories,int nombreCategories);
 
