@@ -23,11 +23,16 @@ typedef struct
   double *PI; /* matrice des probabilites initiales PI[i] = P(X0 = i)*/
               /* probabilite que le hmm se trouve dans l'etat i au debut */ 
               /* de la generation */
+
+  double **T2;
+
+  int trigramme;
+
 } hmm;
 
 
 hmm* allocate_hmm(int nbe, int nbo);
-
+hmm* allocate_hmm_trigramme(int nbe, int nbo);
 void intialize_hmm(hmm *h);
 void init_hmm_inf(hmm *h);
 void print_hmm(hmm *h, char *file_name);

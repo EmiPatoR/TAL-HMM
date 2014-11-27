@@ -334,7 +334,6 @@ void detect_mots_inconnus(corpus *Corp,MlData *data){
 		}
 	}
 }
-
 double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories, int *erreursCat, int* nb_m_test){
 	double resultat = 0.0;
 	int i,j;
@@ -354,6 +353,7 @@ double eval_Corpus(corpus *Corp,MlData *data, hmm *h, categorie *Categories, int
 			nb_mots++;
 		}
 		free(test.categories);
+		//printf("TEST = %i \n",i);
 	}
 	*nb_m_test = nb_mots;
 	resultat = (double)((double)nb_erreurs/(double)nb_mots);

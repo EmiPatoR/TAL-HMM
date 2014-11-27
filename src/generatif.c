@@ -132,8 +132,8 @@ void calc_T(hmm *h,corpus* Corp,MlData *data){
 	/*Calcul*/
 	for(i=0;i<h->nbe;i++){
 		for(j=0;j<data->train_samples_count;j++){
-			for(k=0;k<Corp->phrases[data->train_samples_id[j]].nb_mots;k++){
-				if(Corp->phrases[data->train_samples_id[j]].categories[k]->id == i){
+			for(k=1;k<Corp->phrases[data->train_samples_id[j]].nb_mots;k++){
+				if(Corp->phrases[data->train_samples_id[j]].categories[k-1]->id == i){
 					occ[i]++;
 				}
 			}

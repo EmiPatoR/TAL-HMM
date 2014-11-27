@@ -334,9 +334,8 @@ void Perceptron_multi_thread(int I , corpus *Corp,hmm *h, MlData *data, categori
 		}
 	}
 
+	pthread_create (&anim, NULL, anim_loading, &data_anim);
 	while(compteur <I){
-
-		pthread_create (&anim, NULL, anim_loading, &data_anim);
 		for(i=0;i<NB_CORE;i++){
 			pthread_create (&t[i], NULL, tache, &data_t[i]);
 		}

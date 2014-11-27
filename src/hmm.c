@@ -9,6 +9,11 @@ void free_hmm(hmm *h)
 		free(h->E[i]);
 	}
 
+	if(h->trigramme == 1){
+		for(i=0;i<h->nbe*h->nbe;i++)
+			free(h->T2[i]);
+	}
+
 	free(h->T);
 	free(h->E);
 	free(h->PI);
@@ -34,6 +39,76 @@ void init_hmm_inf(hmm *h){
 
 }
 
+hmm* allocate_hmm_trigramme(int nbe, int nbo){
+	hmm *h = NULL;
+	int i;
+
+	h = (hmm*)malloc(sizeof(hmm));
+	if(h == NULL){
+		fprintf(stderr, "erreur d'allocation\n");
+		exit(1);
+	}
+
+	h->nbe = nbe;
+	h->nbo = nbo;
+	h->trigramme = 1;
+	/* allocation de la matrice de transition */
+
+	h->T = (double**) malloc(sizeof(double *) * (nbe));
+	if(h->T == NULL){
+		fprintf(stderr, "erreur d'allocation\n");
+		exit(1);
+	}
+
+	for(i=0;i<nbe;i++){
+		h->T[i] = (double*) malloc(sizeof(double)*nbe);
+		if(h->T[i] == NULL){
+			fprintf(stderr, "erreur d'allocation\n");
+			exit(1);
+		}
+	}
+
+	h->T2 = (double**) calloc((nbe*nbe),sizeof(double*));
+	if(h->T2 == NULL){
+		fprintf(stderr, "erreur d'allocation\n");
+		exit(1);
+	}
+	for(i=0;i<nbe*nbe;i++){
+		h->T2[i] = (double*) calloc(nbe,sizeof(double));
+		if(h->T2[i] == NULL){
+			fprintf(stderr, "erreur d'allocation\n");
+			exit(1);
+		}
+	}
+
+
+	/* allocation de la matrice d'emission */
+
+	h->E = malloc(nbe * sizeof(double *));
+	if(h->E == NULL){
+		fprintf(stderr, "erreur d'allocation\n");
+		exit(1);
+	}
+	for(i = 0; i < nbe; i++){
+		h->E[i] = malloc(nbo * sizeof(double));
+		if(h->E[i] == NULL){
+			fprintf(stderr, "erreur d'allocation\n");
+			exit(1);
+		}
+	}
+
+	/* allocation de la matrice des probabilites initiales */
+	h->PI = malloc(nbe * sizeof(double));
+	if(h->PI == NULL){
+		fprintf(stderr, "erreur d'allocation\n");
+		exit(1);
+	}
+
+	printf("HMM alloue en memoire. \n");
+
+	return h;
+}
+
 hmm* allocate_hmm(int nbe, int nbo)
 {
 	hmm *h = NULL;
@@ -47,7 +122,7 @@ hmm* allocate_hmm(int nbe, int nbo)
 
 	h->nbe = nbe;
 	h->nbo = nbo;
-
+	h->trigramme = 0;
 	/* allocation de la matrice de transition */
 
 	h->T = (double**) malloc(sizeof(double *) * nbe);

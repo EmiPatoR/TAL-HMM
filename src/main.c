@@ -8,6 +8,7 @@
 #include "generatif.h"
 #include "viterbi.h"
 #include "perceptron.h"
+#include "gramme.h"
 
 int main(int argc, char* argv[])
 {
@@ -37,11 +38,12 @@ int main(int argc, char* argv[])
 	Corp = init_phrases("data/train/ftb.train.encode",Mots,Categories);
 
 	tts = allocate_traintestsplit();
-	/*load_count(tts,100,0);*/
-	load_portion(tts,0.9,0);
+	/*load_count(tts,1,0);*/
+	load_portion(tts,0.99,0);
 	data = allocate_mldata(Corp->nb_phrases,tts);
 
-	h = allocate_hmm(nbCategories,nbMots);
+	//h = allocate_hmm(nbCategories,nbMots);
+	h = allocate_hmm_trigramme(nbCategories,nbMots);
 
 	printf("-------------- Detection mots inconnus --------------------- \n");
 	detect_mots_inconnus(Corp,data);
@@ -59,11 +61,12 @@ int main(int argc, char* argv[])
 	printf("--------------- Apprentissage -------------------- \n");
 
 	/*Modele generatif*/
-		/*init_hmm_inf(h);*/
+		init_hmm_inf(h);
 		/*h = load_hmm("percep_tr90_i1");*/
-		/*calc_PI(h,Corp,data);*/
-		/*calc_E(h,Corp,data);*/
-		/*calc_T(h,Corp,data);*/
+		calc_PI(h,Corp,data);
+		calc_E(h,Corp,data);
+		calc_T(h,Corp,data);
+		Gramme(Corp,h,data,Categories);
 		/*print_hmm(h,"TestMulti");*/
 
 	/*Modele discriminant*/
@@ -76,33 +79,31 @@ int main(int argc, char* argv[])
 			/*print_hmm_perceptron(h,"percep_multi_tr90_i25");*/
 
 		/*Perceptron Multi*/
-			intialize_hmm(h);
-			/*h = load_hmm_perceptron("percep_multi_tr90_i25");*/
-			Perceptron_multi_thread(1,Corp,h,data,Categories);
-			/*print_hmm_perceptron(h,"percep_multi_tr90_i25");*/
+			/*intialize_hmm(h);*/
+			/*h = load_hmm_perceptron("percep_multi_tr90_i25");
+			Perceptron_multi_thread(15,Corp,h,data,Categories);
+			print_hmm_perceptron(h,"percep_multi_tr90_i40");*/
 
 	printf("-------------- Phrase de test --------------------- \n");
-	Cc = Viterbi(h,Corp->phrases[data->test_samples_id[32]],Categories);
+	Cc = Viterbi(h,Corp->phrases[data->test_samples_id[53]],Categories);
 	test = malloc(sizeof(phrase));
 	test->categories = Cc;
-	test->nb_mots = Corp->phrases[data->test_samples_id[32]].nb_mots;
-	test->id = Corp->phrases[data->test_samples_id[32]].id;
-	test->mots = Corp->phrases[data->test_samples_id[32]].mots;
+	test->nb_mots = Corp->phrases[data->test_samples_id[53]].nb_mots;
+	test->id = Corp->phrases[data->test_samples_id[53]].id;
+	test->mots = Corp->phrases[data->test_samples_id[53]].mots;
 	printf("Contenu de la phrase :\n");
-	afficher_phrase(Corp->phrases[data->test_samples_id[32]]);
+	afficher_phrase(Corp->phrases[data->test_samples_id[53]]);
 	printf("\n");
 	printf("Categories correctes de la phrase :\n");
-	afficher_categories_phrase(Corp->phrases[data->test_samples_id[32]]);
+	afficher_categories_phrase(Corp->phrases[data->test_samples_id[53]]);
 	printf("\n");
 	printf("Categories predites de la phrase :\n");
 	afficher_categories_phrase(*test);
 	printf("\n");
-	/*
 	for(i=0;i<test->nb_mots;i++){
 		printf(" %i " ,test->mots[i]->inconnu);
 	}
 	printf("\n");
-	*/
 	printf("-------------- Performances --------------------------- \n");
 	erreursCat = (int*) calloc(h->nbe,sizeof(int));
 	eval = eval_Corpus(Corp,data,h,Categories,erreursCat,&nb_mots_test);
