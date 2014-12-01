@@ -87,9 +87,9 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 				for(k=0;k<h->nbe;k++){
 					for(l=0;l<h->nbe;l++){
 						if(p.mots[i]->inconnu == 0)
-							valeur_actuelle = T1[l][i-2]+h->T[l][k]+T1[k][i-1]+ h->T2[l*h->nbe+k][j] + h->E[j][p.mots[i]->id];
+							valeur_actuelle = T1[l][i-2]+T1[k][i-1]+ h->T2[l*h->nbe+k][j] + h->E[j][p.mots[i]->id];
 						else
-							valeur_actuelle = T1[l][i-2]+h->T[l][k]+T1[k][i-1]+ h->T2[l*h->nbe+k][j];
+							valeur_actuelle = T1[l][i-2]+T1[k][i-1]+ h->T2[l*h->nbe+k][j];
 						if(valeur_actuelle >= val_max){
 							val_max = valeur_actuelle;
 							i_max = k+h->nbe*l;
@@ -102,7 +102,7 @@ categorie** Viterbi(hmm* h, phrase p, categorie* Categories){
 						if(p.mots[i]->inconnu == 0)
 							valeur_actuelle = T1[k][i-1] + h->T[k][j] + h->E[j][p.mots[i]->id];
 						else
-							valeur_actuelle = T1[l][i-2]+h->T[l][k]+T1[k][i-1]+ h->T2[l*h->nbe+k][j];
+							valeur_actuelle = T1[l][i-2]+T1[k][i-1]+ h->T2[l*h->nbe+k][j];
 						if(valeur_actuelle >= val_max){
 							val_max = valeur_actuelle;
 							if(p.mots[i]->inconnu)

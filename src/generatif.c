@@ -157,7 +157,7 @@ void calc_T(hmm *h,corpus* Corp,MlData *data){
 
 	for(i=0;i<h->nbe;i++){
 		for(j=0;j<h->nbe;j++){
-			if(num[i][j] == 0)
+			if(num[i][j] == 0 || occ[i]==0)
 				h->T[i][j] = MINUS_INF;
 			else
 				h->T[i][j] = log((double)((double)num[i][j] / (double)occ[i]));
